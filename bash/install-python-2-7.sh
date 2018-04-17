@@ -9,7 +9,7 @@ cd /tmp/;
 wget --no-check-certificate https://www.python.org/ftp/python/2.7.12/Python-2.7.12.tgz;
 tar -xvf /tmp/Python-2.7.12.tgz;
 cd /tmp/Python-2.7.12/;
-./configure --prefix=/usr/local;
+./configure --prefix=/usr;
 make;
 make altinstall;
 
