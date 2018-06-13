@@ -1,0 +1,101 @@
+#!/bin/sh
+
+# -------------------------------------------------------------------------------------------
+# provides:          your-service
+# required-start:    $local_fs $remote_fs $network
+# required-stop:     $local_fs $remote_fs $network
+# should-start:      $named
+# should-stop:       $named
+# default-start:     2 3 4 5
+# default-stop:      0 1 6
+# short-description: start tomcat your-service
+# description:       start the tomcat your-service servlet engine
+
+#--------------------------------------------------------------------------------------------
+# define service runtime vars here
+service_name=your-service
+jar_file=${service_name}.jar
+service_prop=${service_name}-properties.yml
+
+service_usr=spring
+service_dir=/usr/share/spring-boot/apps/${service_name}
+service_jar=${service_dir}/${jar_file}
+service_pid=/var/run/${service_name}.pid
+service_log=/var/log/spring-boot/${service_name}.log
+
+# -------------------------------------------------------------------------------------------
+# define java runtime opts here
+java_opts="-javaagent:${service_dir}/appdynamics/appserver-agent/current/javaagent.jar"
+
+# -------------------------------------------------------------------------------------------
+# define switch user command
+su_user="su - ${service_usr} -s /bin/sh -c "
+
+# -------------------------------------------------------------------------------------------
+# create log file and set permissions
+if [ ! -f ${service_log} ]; then
+    touch ${service_log};
+    chown ${service_usr}:${service_usr} ${service_log};
+else
+    truncate --size=0 ${service_log};
+    chown ${service_usr}:${service_usr} ${service_log};
+fi
+
+#--------------------------------------------------------------------------------------------
+# define service options here
+case $1 in
+  start)
+  echo "please wait starting ${service_name} ...";
+    if [ ! -f ${service_pid} ]; then
+      ${su_user} "nohup java '${java_opts}' -jar '${service_jar}' --spring.config.location=classpath:application.yml,${service_dir}/${service_prop} /tmp > /dev/null 2>&1 &"'
+      echo "$!"' > ${service_pid};
+      sleep 10;
+      echo "${service_name} started by ${service_usr} under pid id $(cat ${service_pid})";
+      echo "${service_name} started ...";
+    else
+      echo "${service_name} is already running ...";
+    fi
+  ;;
+  stop)
+    if [ ! -f ${service_pid} ]; then
+      echo "${service_name} is not currently running ...";
+    else
+      pid=$(cat ${service_pid});
+      echo "please wait stopping ${service_name} ...";
+      kill ${pid};
+      sleep 3;
+      echo "${service_name} stopped ...";
+      rm ${service_pid};
+    fi
+  ;;
+  restart)
+    if [ ! -f ${service_pid} ]; then
+      echo "${service_name} is not currently running ...";
+    else
+      pid=$(cat ${service_pid});
+      echo "please wait stopping ${service_name} ...";
+      kill ${pid};
+      sleep 3;
+      echo "${service_name} stopped ...";
+      rm ${service_pid};
+      sleep 3;
+      echo "please wait starting ${service_name} ...";
+      ${su_user} "nohup java '${java_opts}' -jar '${service_jar}' --spring.config.location=classpath:application.yml,${service_dir}/${service_prop} /tmp > /dev/null 2>&1 &"'
+      echo "$!"' > ${service_pid};
+      sleep 10;
+      echo "${service_name} started by ${service_usr} under pid id $(cat ${service_pid})";
+      echo "${service_name} started ...";
+    fi
+  ;;
+  status)
+    if [ ! -f ${service_pid} ]; then
+      echo "${service_name} is not currently running ...";
+    else
+      pid=$(cat ${service_pid});
+      echo "${service_name} running under pid id ${pid} ...";
+    fi
+  ;;
+  *)
+    echo "Usage: $0 {status|start|stop|restart}";
+    exit 1;
+esac
