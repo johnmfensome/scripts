@@ -1,1 +1,9 @@
 ps -eo 'state,pid,args' | awk '$1 == "D" {print;}'
+
+or
+
+ps -eo 'state,pid,args' | grep -E '^D'
+
+or
+
+ps -eo 'state,pid,args' | egrep '^D'
