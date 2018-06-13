@@ -1,0 +1,14 @@
+remove ^M line breaks from file
+:e ++ff=dos
+
+
+change file format from dos to unix
+:set ff=unix
+
+
+format xml file
+
+first, highlight the xml you want to format. then, in normal mode, type !xmllint --format -
+your command-line at the bottom will look like this:
+
+:'<,'>!xmllint --format -
