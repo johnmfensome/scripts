@@ -1,0 +1,1 @@
+ps -eo 'state,pid,args' | awk '$1 == "D" {print;}'
