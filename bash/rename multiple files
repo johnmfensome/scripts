@@ -1,0 +1,4 @@
+find . -type f -name '01_*' | while read FILE ;
+do newfile="$(echo ${FILE} |sed -e 's/\01_/02_/')" ;
+mv "${FILE}" "${newfile}" ;
+done
